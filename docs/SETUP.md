@@ -101,3 +101,13 @@ cd ~/projects/financial-complaint-topic-modeling && ./.venv/bin/python scripts/m
 ```bash
 cd ~/projects/financial-complaint-topic-modeling && ./.venv/bin/python -m pytest tests/ -q
 ```
+
+## Build the feature matrices
+
+```bash
+cd ~/projects/financial-complaint-topic-modeling && ./.venv/bin/python scripts/build_features.py
+```
+
+Splits the corpus into train and test stratified by product, fits every vectoriser on the
+training split alone, and writes the matrices to `data/processed/features` along with the
+split itself. Comparison tables land in `reports/`.

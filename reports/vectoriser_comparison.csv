@@ -1,0 +1,5 @@
+representation,documents,features,vocabulary,stored_values,density_pct,sparsity_pct,nonzero_per_doc_median,memory_mb,fitted_on_documents,kind,min_df,max_df,ngram,test_documents
+count_unigram,14332,6885,6885,889376,0.9013,99.0987,48,10.7,14332,count,5,1.0,1 to 1,3583
+tfidf_unigram,14332,6885,6885,889376,0.9013,99.0987,48,10.7,14332,tfidf,5,1.0,1 to 1,3583
+tfidf_bigram,14332,46531,46531,1465584,0.2198,99.7802,79,17.6,14332,tfidf,5,1.0,1 to 2,3583
+count_unigram_maxdf07,14332,6885,6885,889376,0.9013,99.0987,48,10.7,14332,count,5,0.7,1 to 1,3583

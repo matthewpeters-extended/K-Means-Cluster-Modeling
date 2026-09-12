@@ -1,0 +1,5 @@
+representation,row_norm_corr_with_length,pair_distance_corr_with_length_gap,row_norm_std
+count_unigram,0.953,0.865,10.6628
+tfidf_unigram,0.0,-0.155,0.0
+tfidf_bigram,0.0,-0.161,0.0
+count_unigram_maxdf07,0.953,0.865,10.6628

@@ -1,0 +1,14 @@
+gate,value,vocabulary,vocabulary_pct,tokens_retained_pct,terms_removed
+min_df,1.0,19001,100.0,100.0,
+min_df,2.0,10871,57.2,99.29,
+min_df,3.0,8782,46.2,98.9,
+min_df,5.0,6885,36.2,98.29,
+min_df,10.0,5083,26.8,97.2,
+min_df,20.0,3681,19.4,95.44,
+min_df,50.0,2326,12.2,91.42,
+max_df,1.0,19001,100.0,100.0,
+max_df,0.9,19001,100.0,100.0,
+max_df,0.7,19001,100.0,100.0,
+max_df,0.5,19000,100.0,98.18,account
+max_df,0.3,18995,100.0,93.8,"account, payment, credit, time, would, received"
+max_df,0.2,18972,99.8,82.13,"account, payment, credit, time, would, received, information, loan"
