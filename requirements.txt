@@ -22,3 +22,6 @@ pillow
 # Notebooks
 jupyter
 ipykernel
+
+# Testing
+pytest

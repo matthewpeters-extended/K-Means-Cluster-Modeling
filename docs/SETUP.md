@@ -76,3 +76,28 @@ Once everything runs, freeze it so the results are reproducible:
 ```bash
 cd ~/projects/financial-complaint-topic-modeling && ./.venv/bin/pip freeze > requirements-lock.txt
 ```
+
+## Build the modelling corpus
+
+```bash
+cd ~/projects/financial-complaint-topic-modeling && ./.venv/bin/python scripts/build_corpus.py
+```
+
+Cleans both corpora and writes `data/processed/corpus_stratified.parquet` and
+`corpus_natural.parquet`, plus a reduction report to `reports/`.
+
+## Audit the data and draw the figures
+
+```bash
+cd ~/projects/financial-complaint-topic-modeling && ./.venv/bin/python scripts/audit_data.py
+```
+
+```bash
+cd ~/projects/financial-complaint-topic-modeling && ./.venv/bin/python scripts/make_eda_figures.py
+```
+
+## Run the tests
+
+```bash
+cd ~/projects/financial-complaint-topic-modeling && ./.venv/bin/python -m pytest tests/ -q
+```

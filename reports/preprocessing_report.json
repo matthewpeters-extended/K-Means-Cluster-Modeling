@@ -1,0 +1,26 @@
+{
+  "stratified": {
+    "input": 19979,
+    "after_min_length": 19875,
+    "after_exact_dedupe": 18740,
+    "after_near_dedupe": 17915,
+    "template_groups": 423,
+    "largest_template": 101,
+    "elapsed_seconds": 4.5,
+    "retained_pct": 89.7,
+    "tokens_median": 66,
+    "vocabulary": 21033
+  },
+  "natural": {
+    "input": 20000,
+    "after_min_length": 19826,
+    "after_exact_dedupe": 12120,
+    "after_near_dedupe": 8869,
+    "template_groups": 1313,
+    "largest_template": 347,
+    "elapsed_seconds": 2.5,
+    "retained_pct": 44.3,
+    "tokens_median": 55,
+    "vocabulary": 14160
+  }
+}

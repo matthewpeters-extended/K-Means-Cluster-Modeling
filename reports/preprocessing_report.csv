@@ -1,0 +1,11 @@
+,stratified,natural
+input,19979.0,20000.0
+after_min_length,19875.0,19826.0
+after_exact_dedupe,18740.0,12120.0
+after_near_dedupe,17915.0,8869.0
+template_groups,423.0,1313.0
+largest_template,101.0,347.0
+elapsed_seconds,4.5,2.5
+retained_pct,89.7,44.3
+tokens_median,66.0,55.0
+vocabulary,21033.0,14160.0

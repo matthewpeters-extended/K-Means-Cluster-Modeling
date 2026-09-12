@@ -83,29 +83,32 @@ dominates the natural sample.
 <tr><th>Measure</th><th>Stratified</th><th>Natural</th></tr>
 <tr><td>Documents</td><td>19,979</td><td>20,000</td></tr>
 <tr><td>Exact duplicates after normalising</td><td>1,085 (5.4%)</td><td>7,513 (37.6%)</td></tr>
-<tr><td>Near duplicate groups</td><td>723</td><td>2,372</td></tr>
-<tr><td>Surplus copies beyond one per group</td><td>1,951 (9.8%)</td><td>10,997 (55.0%)</td></tr>
-<tr><td>Largest single template group</td><td>110 documents</td><td>1,167 documents</td></tr>
+<tr><td>Near duplicate groups</td><td>717</td><td>2,354</td></tr>
+<tr><td>Surplus copies beyond one per group</td><td>1,968 (9.9%)</td><td>11,044 (55.2%)</td></tr>
+<tr><td>Largest single template group</td><td>171 documents</td><td>1,195 documents</td></tr>
 </table>
 
 Measured with MinHash over five word shingles, 32 permutations banded eight by four, which
-catches pairs above roughly 0.6 Jaccard similarity.
+catches pairs above roughly 0.6 Jaccard similarity. Hashing uses blake2b rather than Python's
+built in `hash`, which is salted per process and would make these counts differ between runs of
+the same script on the same data. Two independent runs of the audit now produce byte identical
+output.
 
-**More than half of the natural sample is redundant.** One template alone accounts for 1,167
+**More than half of the natural sample is redundant.** One template alone accounts for 1,195
 documents, nearly six percent of that corpus. Left in place, KMeans would build centroids
 around boilerplate phrasing rather than around complaint themes, and the resulting clusters
 would measure which credit repair firm filed the paperwork rather than what consumers are
 actually complaining about.
 
 The templates are recognisable Fair Credit Reporting Act dispute letters. The largest group in
-the stratified corpus, 110 documents, opens "In accordance with the Fair Credit Reporting act.
+the stratified corpus, 171 documents, opens "In accordance with the Fair Credit Reporting act.
 The List of accounts below has violated my federally protect". Several distinct groups are
 paraphrases of one another, which is why exact deduplication alone is insufficient: groups of
 45 and 38 documents differ only in "I understand the significance of eliminating any erroneous
 accounts" against "I understand the importance of removing any incorrect accounts".
 
 The reference solution deduplicates on exact string match only. On this corpus that would
-remove 5.4 percent of the stratified sample and leave the remaining 9.8 percent of near
+remove 5.4 percent of the stratified sample and leave the remaining 9.9 percent of near
 duplicates in place, which is the part that actually distorts the centroids.
 
 **Decision. Deduplicate exactly, then collapse each near duplicate group to a single

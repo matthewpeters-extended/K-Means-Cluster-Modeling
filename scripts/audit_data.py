@@ -18,11 +18,15 @@ Usage:
 from __future__ import annotations
 
 import re
+import sys
 from collections import Counter
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from src.dedupe import lsh_groups, minhash_signatures, normalise  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
 RAW = ROOT / "data" / "raw"
@@ -30,73 +34,6 @@ REPORTS = ROOT / "reports"
 
 REDACTION = re.compile(r"X{2,}")
 WORD = re.compile(r"[a-z']+")
-
-# MinHash settings. 32 permutations banded 8 x 4 finds pairs above roughly 0.6 Jaccard,
-# which is the range templated filings sit in once names and amounts are redacted out.
-PERMS, BANDS = 32, 8
-ROWS_PER_BAND = PERMS // BANDS
-SHINGLE = 5
-MERSENNE = (1 << 61) - 1
-
-
-def normalise(text: str) -> str:
-    """Lowercase, drop redaction runs and punctuation, collapse whitespace."""
-    t = REDACTION.sub(" ", text)
-    t = t.lower()
-    t = re.sub(r"[^a-z\s']", " ", t)
-    return re.sub(r"\s+", " ", t).strip()
-
-
-def minhash_signatures(docs: list[str], seed: int = 0) -> np.ndarray:
-    """Signature matrix, one row per document, PERMS columns."""
-    rng = np.random.default_rng(seed)
-    a = rng.integers(1, MERSENNE, size=PERMS, dtype=np.uint64)
-    b = rng.integers(0, MERSENNE, size=PERMS, dtype=np.uint64)
-    sig = np.full((len(docs), PERMS), np.iinfo(np.uint64).max, dtype=np.uint64)
-
-    for i, doc in enumerate(docs):
-        words = doc.split()
-        if len(words) < SHINGLE:
-            shingles = {doc} if doc else set()
-        else:
-            shingles = {" ".join(words[j:j + SHINGLE]) for j in range(len(words) - SHINGLE + 1)}
-        if not shingles:
-            continue
-        h = np.array([hash(s) & 0xFFFFFFFFFFFFFFF for s in shingles], dtype=np.uint64)
-        # (a * h + b) mod Mersenne prime, vectorised over permutations
-        vals = (np.outer(h, a) + b) % np.uint64(MERSENNE)
-        sig[i] = vals.min(axis=0)
-    return sig
-
-
-def lsh_clusters(sig: np.ndarray) -> dict[int, list[int]]:
-    """Union find over documents that collide in any band."""
-    parent = list(range(sig.shape[0]))
-
-    def find(x: int) -> int:
-        while parent[x] != x:
-            parent[x] = parent[parent[x]]
-            x = parent[x]
-        return x
-
-    def union(x: int, y: int) -> None:
-        rx, ry = find(x), find(y)
-        if rx != ry:
-            parent[max(rx, ry)] = min(rx, ry)
-
-    for band in range(BANDS):
-        buckets: dict[bytes, list[int]] = {}
-        chunk = sig[:, band * ROWS_PER_BAND:(band + 1) * ROWS_PER_BAND]
-        for i, row in enumerate(chunk):
-            buckets.setdefault(row.tobytes(), []).append(i)
-        for members in buckets.values():
-            for m in members[1:]:
-                union(members[0], m)
-
-    groups: dict[int, list[int]] = {}
-    for i in range(sig.shape[0]):
-        groups.setdefault(find(i), []).append(i)
-    return {k: v for k, v in groups.items() if len(v) > 1}
 
 
 def audit(df: pd.DataFrame, name: str) -> dict:
@@ -130,12 +67,12 @@ def audit(df: pd.DataFrame, name: str) -> dict:
     out["exact_duplicates_pct"] = round(100 * norm.duplicated().mean(), 1)
 
     sig = minhash_signatures(norm.tolist())
-    groups = lsh_clusters(sig)
-    near_dupes = sum(len(v) - 1 for v in groups.values())
+    groups = lsh_groups(sig)
+    near_dupes = sum(len(g) - 1 for g in groups)
     out["near_duplicate_groups"] = len(groups)
     out["near_duplicate_surplus"] = near_dupes
     out["near_duplicate_surplus_pct"] = round(100 * near_dupes / n, 1)
-    out["largest_template_group"] = max((len(v) for v in groups.values()), default=0)
+    out["largest_template_group"] = max((len(g) for g in groups), default=0)
 
     # --- vocabulary --------------------------------------------------------
     counter: Counter[str] = Counter()
@@ -169,7 +106,7 @@ def main() -> int:
     print(top.head(25).to_string(index=False))
 
     # Which products the templated filings concentrate in
-    big = sorted(groups.values(), key=len, reverse=True)[:10]
+    big = sorted(groups, key=len, reverse=True)[:10]
     tpl = pd.DataFrame([{
         "group_size": len(g),
         "dominant_product": df.iloc[g]["product"].mode().iat[0][:45],
