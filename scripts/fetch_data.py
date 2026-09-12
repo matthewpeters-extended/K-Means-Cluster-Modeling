@@ -37,6 +37,19 @@ from tqdm import tqdm
 API = "https://www.consumerfinance.gov/data-research/consumer-complaints/search/api/v1/"
 
 # Verified live against the API on 2026-09-12. Passing format=json returns 404; JSON is default.
+#
+# TAXONOMY WARNING. The bureau renamed and resplit its product categories in August 2023.
+# Before the change there were 9 product names, after it there are 11. August 2023 is a mixed
+# month containing both schemes (14 distinct names). The names below are the post change
+# scheme, so the default start date is 2023-09, the first fully clean month. Querying these
+# names against earlier months silently returns nothing rather than erroring, which is exactly
+# how the first version of this script produced a corpus with a seven month hole in it.
+#
+# Superseded names, for reference:
+#   Credit reporting, credit repair services, or other personal consumer reports
+#   Credit card or prepaid card              -> split into Credit card AND Prepaid card
+#   Payday loan, title loan, or personal loan -> gained "or advance loan"
+#   (Debt or credit management did not exist before the change)
 PRODUCTS = [
     "Credit reporting or other personal consumer reports",
     "Debt collection",
@@ -88,9 +101,11 @@ def month_windows(start: str, end: str) -> list[tuple[str, str]]:
 
 # --------------------------------------------------------------------------- checkpoints
 
-def shard_path(kind: str, label: str | None, lo: str) -> Path:
+def shard_path(kind: str, label: str | None, lo: str, size: int) -> Path:
+    """Size is part of the key. Without it, raising --per-stratum would silently reuse the
+    smaller checkpoints from an earlier run and quietly cap the corpus."""
     slug = re.sub(r"[^a-z0-9]+", "_", (label or "all").lower()).strip("_")[:60]
-    return SHARDS / f"{kind}__{slug}__{lo[:7]}.jsonl"
+    return SHARDS / f"{kind}__{slug}__{lo[:7]}__n{size}.jsonl"
 
 
 def read_shard(path: Path) -> list[dict]:
@@ -164,7 +179,7 @@ def collect(session, kind, jobs, size, sleep, resume) -> tuple[list[dict], int, 
     reused = fetched = 0
     bar = tqdm(jobs, desc=kind, unit="stratum")
     for label, lo, hi in bar:
-        path = shard_path(kind, label, lo)
+        path = shard_path(kind, label, lo, size)
         if resume and path.exists():
             rows.extend(read_shard(path))
             reused += 1
@@ -204,11 +219,13 @@ def checksum(path: Path) -> str:
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--start", default="2023-01", help="first month, YYYY-MM")
+    ap.add_argument("--start", default="2023-09",
+                    help="first month, YYYY-MM. Default is the first month after "
+                         "the August 2023 product taxonomy change.")
     ap.add_argument("--end", default="2024-12", help="last month, YYYY-MM")
-    ap.add_argument("--per-stratum", type=int, default=75,
+    ap.add_argument("--per-stratum", type=int, default=115,
                     help="max narratives per product per month")
-    ap.add_argument("--per-month", type=int, default=825,
+    ap.add_argument("--per-month", type=int, default=1250,
                     help="narratives per month for the natural distribution sample")
     ap.add_argument("--sleep", type=float, default=1.0,
                     help="seconds to pause between API calls, to stay under the rate limit")
@@ -222,8 +239,11 @@ def main() -> int:
     strat_jobs = [(p, lo, hi) for lo, hi in windows for p in PRODUCTS]
     nat_jobs = [(None, lo, hi) for lo, hi in windows]
     total_requests = len(strat_jobs) + len(nat_jobs)
-    done = sum(1 for k, jobs in (("stratified", strat_jobs), ("natural", nat_jobs))
-               for lab, lo, _ in jobs if shard_path(k, lab, lo).exists()) if not args.fresh else 0
+    done = 0 if args.fresh else (
+        sum(1 for lab, lo, _ in strat_jobs
+            if shard_path("stratified", lab, lo, args.per_stratum).exists())
+        + sum(1 for lab, lo, _ in nat_jobs
+              if shard_path("natural", lab, lo, args.per_month).exists()))
 
     print(f"months          : {len(windows)}  ({args.start} to {args.end})")
     print(f"products        : {len(PRODUCTS)}")
@@ -263,6 +283,18 @@ def main() -> int:
         return 1
 
     strat, nat = tidy(strat_rows), tidy(nat_rows)
+
+    # If the bureau renames categories again, this is where we find out, rather than six
+    # weeks later while wondering why a cluster has no documents from a given year.
+    expected = set(PRODUCTS)
+    unexpected = (set(strat["product"].dropna()) | set(nat["product"].dropna())) - expected
+    if unexpected:
+        print("\nWARNING: product labels outside the expected taxonomy were returned:",
+              file=sys.stderr)
+        for label in sorted(unexpected):
+            print(f"  {label}", file=sys.stderr)
+        print("  The taxonomy may have changed again. Check PRODUCTS and --start.\n",
+              file=sys.stderr)
     strat_path = RAW / "complaints_stratified.parquet"
     nat_path = RAW / "complaints_natural.parquet"
     strat.to_parquet(strat_path, index=False)

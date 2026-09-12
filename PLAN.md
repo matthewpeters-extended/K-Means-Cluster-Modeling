@@ -94,13 +94,20 @@ Full detail and the alternatives considered are in `docs/sources.md`.
 That distribution is 77 percent credit reporting. If we sample at random the clusters will all
 be credit reporting and the exercise is dead on arrival. So:
 
-* Pull a stratified sample, capped per product per month, across 2023 to 2024
-* Target roughly 20,000 narratives, deliberately flattened across products at 75 per product
-  per month over 24 months
+* Pull a stratified sample, capped per product per month, across September 2023 to
+  December 2024
+* Target roughly 20,000 narratives, deliberately flattened across products at 115 per product
+  per month over 16 months
 * Keep a second natural distribution sample of the same size, unflattened, and report how much
   worse clustering behaves on it
 
 That contrast is itself a finding worth writing up.
+
+Why the window starts in September 2023. The bureau renamed and resplit its product
+categories in August 2023, so any window reaching further back mixes two incompatible labelling
+schemes. September 2023 is the first clean month. The full finding, the evidence and the
+reasoning behind not attempting to map the old scheme forward are in `docs/data_defects.md`
+under D1.
 
 Why 20,000 and not more. The reference solution clustered 16,194 documents, so this lands in
 the same order of magnitude and the comparison stays fair. Our narratives average around 1,300
