@@ -111,3 +111,12 @@ cd ~/projects/financial-complaint-topic-modeling && ./.venv/bin/python scripts/b
 Splits the corpus into train and test stratified by product, fits every vectoriser on the
 training split alone, and writes the matrices to `data/processed/features` along with the
 split itself. Comparison tables land in `reports/`.
+
+## Run the clustering
+
+```bash
+cd ~/projects/financial-complaint-topic-modeling && ./.venv/bin/python scripts/run_clustering.py
+```
+
+Sweeps K from 2 to 20 across four representations and saves the fitted labels for K = 2 and
+K = 8 so later phases do not refit. Takes roughly two minutes.

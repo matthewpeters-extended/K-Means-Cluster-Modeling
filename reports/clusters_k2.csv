@@ -1,0 +1,9 @@
+representation,k,cluster,documents,share_pct,top_terms,distinctive_terms
+count_unigram,2,0,12785,89.2,"account, payment, credit, loan, card, bank, time, would, company, information, year, money","gift, vanilla, lexington, visa, google, carvana, jefferson, cashapp, flagship, everywhere, wisely, afterpay"
+count_unigram,2,1,1547,10.8,"account, payment, loan, credit, would, bank, information, time, told, day, received, card","account, payment, loan, credit, would, bank, information, time, told, day, call, consumer"
+tfidf_unigram,2,0,2972,20.7,"credit, report, debt, account, reporting, information, consumer, collection, company, agency, please, bureau","report, credit, debt, reporting, consumer, collection, information, agency, inaccurate, act, bureau, inquiry"
+tfidf_unigram,2,1,11360,79.3,"account, payment, card, loan, bank, money, time, told, would, year, received, called","money, card, told, bank, loan, called, back, get, payment, said, call, would"
+tfidf_bigram,2,0,11610,81.0,"account, payment, loan, card, bank, money, time, would, told, year, received, company","card, money, bank, told, loan, called, back, payment, get, call, said, would"
+tfidf_bigram,2,1,2722,19.0,"credit, report, credit report, debt, account, reporting, information, consumer, collection, agency, company, act","report, credit report, credit, reporting, debt, consumer, collection, information, agency, inaccurate, act, violation"
+tfidf_unigram_svd100,2,0,11392,79.5,"account, payment, card, loan, bank, money, time, told, would, year, received, called","money, card, told, bank, loan, called, back, get, said, payment, call, would"
+tfidf_unigram_svd100,2,1,2940,20.5,"credit, report, debt, account, reporting, information, consumer, collection, company, agency, please, inaccurate","report, credit, debt, reporting, consumer, collection, information, agency, inaccurate, act, inquiry, fcra"
