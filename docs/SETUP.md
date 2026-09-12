@@ -32,8 +32,30 @@ cd ~/projects/financial-complaint-topic-modeling && ./.venv/bin/python -m nltk.d
 cd ~/projects/financial-complaint-topic-modeling && ./.venv/bin/python scripts/fetch_data.py
 ```
 
-This writes `data/raw/complaints.parquet` and `data/raw/fetch_metadata.json`. Neither is
+This writes `data/raw/complaints_stratified.parquet`,
+`data/raw/complaints_natural.parquet` and `data/raw/fetch_metadata.json`. None of them are
 committed to git. The script is the reproducible record of how the corpus was built.
+
+### If it stops partway
+
+It will not lose anything. Every stratum is checkpointed to `data/raw/_shards` the moment it
+arrives, so if the run is interrupted, rate limited or cancelled, you simply run the same
+command again and it picks up from the last completed stratum. Nothing already fetched is
+fetched twice.
+
+The API rate limits aggressive callers, so the script pauses one second between calls by
+default. The full pull is 288 requests and takes roughly eight minutes. If you still get
+rate limited, slow it down further:
+
+```bash
+cd ~/projects/financial-complaint-topic-modeling && ./.venv/bin/python scripts/fetch_data.py --sleep 2
+```
+
+To throw away the checkpoints and pull everything again from scratch:
+
+```bash
+cd ~/projects/financial-complaint-topic-modeling && ./.venv/bin/python scripts/fetch_data.py --fresh
+```
 
 To preview what it would pull without writing anything:
 
