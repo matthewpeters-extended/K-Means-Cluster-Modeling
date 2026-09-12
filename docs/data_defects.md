@@ -71,30 +71,131 @@ value actually exists in the data, because the failure mode is a quiet hole rath
 crash. This one was caught only because a row count came in below its ceiling and the shortfall
 was investigated instead of shrugged at.
 
-## D2. Class imbalance in the natural distribution sample
+## D2. Templated bulk filings, the largest defect in the corpus
 
-**Severity: expected, not a defect as such. Handled by design.**
+**Severity: critical for the natural sample. Measured in phase 2. To be handled in phase 4.**
 
-The natural sample reflects how complaints actually arrive, and credit reporting dominates it.
-Measured on the first pull, credit reporting was slightly over half of the natural sample even
-before the old taxonomy rows were folded in, against roughly one eleventh in the stratified
-sample. This is the reason two corpora are built rather than one, and the comparison between
-them is a planned finding rather than a problem to be hidden.
+Credit repair firms file large volumes of near identical narratives on behalf of clients. The
+scale of this is far worse than expected, and it is concentrated in exactly the category that
+dominates the natural sample.
 
-## D3. Redaction artefacts
+<table>
+<tr><th>Measure</th><th>Stratified</th><th>Natural</th></tr>
+<tr><td>Documents</td><td>19,979</td><td>20,000</td></tr>
+<tr><td>Exact duplicates after normalising</td><td>1,085 (5.4%)</td><td>7,513 (37.6%)</td></tr>
+<tr><td>Near duplicate groups</td><td>723</td><td>2,372</td></tr>
+<tr><td>Surplus copies beyond one per group</td><td>1,951 (9.8%)</td><td>10,997 (55.0%)</td></tr>
+<tr><td>Largest single template group</td><td>110 documents</td><td>1,167 documents</td></tr>
+</table>
 
-**Severity: high for modelling. Not yet addressed. Phase 4.**
+Measured with MinHash over five word shingles, 32 permutations banded eight by four, which
+catches pairs above roughly 0.6 Jaccard similarity.
+
+**More than half of the natural sample is redundant.** One template alone accounts for 1,167
+documents, nearly six percent of that corpus. Left in place, KMeans would build centroids
+around boilerplate phrasing rather than around complaint themes, and the resulting clusters
+would measure which credit repair firm filed the paperwork rather than what consumers are
+actually complaining about.
+
+The templates are recognisable Fair Credit Reporting Act dispute letters. The largest group in
+the stratified corpus, 110 documents, opens "In accordance with the Fair Credit Reporting act.
+The List of accounts below has violated my federally protect". Several distinct groups are
+paraphrases of one another, which is why exact deduplication alone is insufficient: groups of
+45 and 38 documents differ only in "I understand the significance of eliminating any erroneous
+accounts" against "I understand the importance of removing any incorrect accounts".
+
+The reference solution deduplicates on exact string match only. On this corpus that would
+remove 5.4 percent of the stratified sample and leave the remaining 9.8 percent of near
+duplicates in place, which is the part that actually distorts the centroids.
+
+**Decision. Deduplicate exactly, then collapse each near duplicate group to a single
+representative, and keep the group sizes as a separate column.** The volume of a template is
+real information about consumer behaviour and belongs in the exploratory analysis. It just must
+not be allowed to vote repeatedly in the clustering.
+
+## D3. Redaction padding
+
+**Severity: high for modelling. Measured in phase 2. To be stripped in phase 4.**
 
 The bureau masks names, dates, account numbers and amounts as runs of the letter X before
-publication. These runs are expected to be among the highest frequency tokens in the corpus and
-will dominate every cluster if they survive preprocessing. To be quantified in phase 2 and
-stripped in phase 4.
+publication.
 
-## D4. Templated filings
+* 81.2 percent of stratified narratives contain at least one redaction run
+* Median of 6 runs per affected document
+* Redaction accounts for 4.25 percent of all characters in the stratified corpus and 6.38
+  percent in the natural corpus
 
-**Severity: medium. Not yet addressed. Phase 4.**
+Untouched, these runs become among the highest frequency tokens in the vocabulary and appear in
+every cluster, contributing nothing that separates one theme from another. Stripped in phase 4
+before tokenisation.
 
-Credit repair firms file large volumes of near identical narratives on behalf of clients.
-Deduplicating on exact string match will not catch these because small details differ. Expected
-to form an artificial cluster if left alone. Near duplicate detection over hashed token
-shingles is planned for phase 4.
+## D4. Vocabulary sparsity
+
+**Severity: medium. Measured in phase 2. Handled by frequency gates in phase 5.**
+
+The stratified corpus yields 24,218 distinct tokens before stopword removal, and 37.5 percent
+of them appear exactly once. Those single occurrence tokens are overwhelmingly typographical
+errors, fragments of redacted strings and rare proper nouns. They add dimensions to the
+document term matrix without adding any signal that could separate clusters. This is what the
+min_df gate in phase 5 exists to remove, and the measurement gives us a basis for choosing the
+threshold rather than copying one.
+
+## D5. Narrative length varies systematically by product
+
+**Severity: medium, and a genuine confound. Measured in phase 2.**
+
+Median narrative length is not constant across the categories we are going to evaluate against:
+
+<table>
+<tr><th>Product</th><th>Median words</th></tr>
+<tr><td>Mortgage</td><td>211</td></tr>
+<tr><td>Student loan</td><td>171</td></tr>
+<tr><td>Money transfer, virtual currency, or money service</td><td>168</td></tr>
+<tr><td>Checking or savings account</td><td>166</td></tr>
+<tr><td>Vehicle loan or lease</td><td>163</td></tr>
+<tr><td>Payday loan, title loan, personal loan, or advance loan</td><td>142</td></tr>
+<tr><td>Credit card</td><td>138</td></tr>
+<tr><td>Prepaid card</td><td>128</td></tr>
+<tr><td>Debt or credit management</td><td>104</td></tr>
+<tr><td>Credit reporting or other personal consumer reports</td><td>98</td></tr>
+<tr><td>Debt collection</td><td>95</td></tr>
+</table>
+
+A mortgage complaint is more than twice the length of a debt collection complaint. Raw
+CountVectorizer counts scale with document length, so under Euclidean distance KMeans can
+partly separate these categories on length alone rather than on vocabulary. That would inflate
+the evaluation scores for reasons that have nothing to do with topic discovery.
+
+This is a concrete argument for comparing TF IDF against raw counts rather than assuming, since
+TF IDF with L2 normalisation removes the length effect. The brief asks for both representations
+anyway. Phase 5 now has a specific hypothesis to test rather than a box to tick.
+
+## D6. Class imbalance
+
+**Severity: expected. Handled by design, and now quantified.**
+
+<table>
+<tr><th></th><th>Stratified</th><th>Natural</th></tr>
+<tr><td>Largest class share</td><td>9.2%</td><td>72.9%</td></tr>
+<tr><td>Ratio, largest class to smallest</td><td>1.17 to 1</td><td>324 to 1</td></tr>
+</table>
+
+The majority class baseline is therefore 9.2 percent on the stratified corpus and 72.9 percent
+on the natural one. Both numbers get stated next to any clustering result computed on that
+corpus. A purity score of 70 percent on the natural sample would be worse than guessing
+"credit reporting" every time, and that is precisely the kind of result that gets reported as a
+success in projects that skip baselines.
+
+Only one product fell short of its per stratum ceiling: Debt or credit management returned
+1,579 of a possible 1,840 because the category does not receive 115 narratives in every month.
+That is a real volume limit, not a fetch defect.
+
+## D7. Encoding, a non issue
+
+**Severity: none. Checked and dismissed.**
+
+Zero narratives in either corpus contain non ASCII characters. The bureau normalises text
+before publication. The reference solution includes an ASCII filtering step, written for
+multilingual tweets, which would be pure ceremony here. It is omitted, and this measurement is
+the reason. Steps carried over from a reference implementation should be justified against your
+own data, not inherited on faith.
