@@ -1,0 +1,5 @@
+representation,brand_share_of_distinctive_terms,nmi_with_product,nmi_with_company,company_over_product
+count_unigram,0.281,0.1229,0.0881,0.72
+tfidf_unigram,0.26,0.3347,0.2435,0.73
+tfidf_bigram,0.271,0.3385,0.2625,0.78
+tfidf_unigram_svd100,0.302,0.3688,0.262,0.71

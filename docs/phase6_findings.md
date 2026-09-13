@@ -134,7 +134,12 @@ Reporting Act template that phase 2 identified as D2, recognisable by usc, act, 
 rights. The clustering has separated the credit repair industry's paperwork from genuine
 individual complaints, which is a more useful distinction than the product label offers, and
 one the product label cannot express. It is also a warning for phase 7: purity against
-`product` will penalise this split even though it is arguably the better one.
+`product` may penalise this split even though it is arguably the better one.
+
+**Update after phase 7: this prediction was wrong.** Merging the two clusters moves purity from
+0.3761 to 0.3747, very slightly worse rather than better. Cluster 4 is not concentrated in
+credit reporting at all; the statutory template is used to dispute any account type, so the
+cluster cuts across the whole taxonomy. See `docs/phase7_findings.md` E5.
 
 **Several clusters key on company names.** mohela, amex, carvana, lexington and chase all
 appear as distinctive terms. Company name is a strong predictor of product, so the clustering

@@ -120,3 +120,12 @@ cd ~/projects/financial-complaint-topic-modeling && ./.venv/bin/python scripts/r
 
 Sweeps K from 2 to 20 across four representations and saves the fitted labels for K = 2 and
 K = 8 so later phases do not refit. Takes roughly two minutes.
+
+## Evaluate against the ground truth labels
+
+```bash
+cd ~/projects/financial-complaint-topic-modeling && ./.venv/bin/python scripts/evaluate_clusters.py
+```
+
+Scores every clustering against the bureau's product and issue labels, on train and on the
+held out test split, with a majority baseline and a permuted control beside every number.

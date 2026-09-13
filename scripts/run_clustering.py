@@ -39,7 +39,9 @@ REPORTS = ROOT / "reports"
 FIGS = REPORTS / "figures"
 
 K_RANGE = list(range(2, 21))
-HEADLINE_KS = [2, 8]          # the two the brief asks for
+HEADLINE_KS = [2, 8, 11]      # the two the brief asks for, plus 11 to match the
+                              # eleven real product labels: the fairest test of
+                              # whether clustering can recover the taxonomy
 SVD_COMPONENTS = 100
 
 INK, GRID = "#1b1b1b", "#d9d9d9"
