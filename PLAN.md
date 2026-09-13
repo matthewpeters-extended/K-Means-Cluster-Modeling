@@ -4,8 +4,9 @@ Unsupervised topic modelling over consumer finance complaint narratives, using T
 CountVectorizer features with KMeans clustering, benchmarked against the real product labels
 that ship with the data.
 
-Status: planning. Nothing has been run yet.
-Created 2026 09 12.
+Status: complete. All ten phases run. Results in `README.md`, the build narrative in
+`WALKTHROUGH.md`, and per phase findings in `docs/`.
+Created 2026 09 12, completed 2026 09 13.
 
 ## 1. What this project is
 
