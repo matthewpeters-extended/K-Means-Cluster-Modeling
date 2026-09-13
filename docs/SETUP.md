@@ -138,3 +138,12 @@ cd ~/projects/financial-complaint-topic-modeling && ./.venv/bin/python scripts/c
 
 Fits all three methods at K = 2, 8 and 11 and scores them identically. Takes roughly a minute,
 most of it LDA.
+
+## Draw the cluster figures
+
+```bash
+cd ~/projects/financial-complaint-topic-modeling && ./.venv/bin/python scripts/make_cluster_figures.py
+```
+
+Word clouds for K = 2 and K = 8, the ranked term equivalent, the TSNE projection and the
+sentiment layer. Takes under a minute.
