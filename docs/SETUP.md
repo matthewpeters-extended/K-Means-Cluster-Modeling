@@ -129,3 +129,12 @@ cd ~/projects/financial-complaint-topic-modeling && ./.venv/bin/python scripts/e
 
 Scores every clustering against the bureau's product and issue labels, on train and on the
 held out test split, with a majority baseline and a permuted control beside every number.
+
+## Compare KMeans against NMF and LDA
+
+```bash
+cd ~/projects/financial-complaint-topic-modeling && ./.venv/bin/python scripts/compare_methods.py
+```
+
+Fits all three methods at K = 2, 8 and 11 and scores them identically. Takes roughly a minute,
+most of it LDA.
